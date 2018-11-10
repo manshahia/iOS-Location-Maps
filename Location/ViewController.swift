@@ -12,8 +12,20 @@ import MapKit
 
 class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDelegate {
 
+    @IBOutlet weak var country: UILabel!
+    @IBOutlet weak var postalCode: UILabel!
+    @IBOutlet weak var subAdministrativeArea: UILabel!
+    @IBOutlet weak var sublocality: UILabel!
+    @IBOutlet weak var altitude: UILabel!
+    @IBOutlet weak var speed: UILabel!
+    @IBOutlet weak var course: UILabel!
+    @IBOutlet weak var longitude: UILabel!
+    @IBOutlet weak var latitude: UILabel!
+    
     @IBOutlet weak var map: MKMapView!
+    
     let locationManager = CLLocationManager()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         locationManager.delegate = self
@@ -30,22 +42,49 @@ class ViewController: UIViewController, CLLocationManagerDelegate, MKMapViewDele
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         
         let location : CLLocation = locations[0]
-        let latitude = location.coordinate.latitude
-        let longitude = location.coordinate.longitude
-        let coordinates = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-        let latDelta = 0.05
-        let longDelta = 0.05
-        let span = MKCoordinateSpan(latitudeDelta: latDelta, longitudeDelta: longDelta)
-        let region = MKCoordinateRegion(center: coordinates, span: span)
         
-        
+        self.latitude.text = String(location.coordinate.latitude)
+        self.longitude.text = String(location.coordinate.longitude)
+        self.course.text = String(location.course)
+        self.speed.text = String(location.speed)
+        self.altitude.text = String(location.altitude)
 
-        map.setRegion(region, animated: true)
-
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = coordinates
-        map.addAnnotation(annotation)
         
+        let geoCoder = CLGeocoder()
+        geoCoder.reverseGeocodeLocation(location) { (placemarks, error) in
+            if error == nil {
+                if let placemark = placemarks?[0]
+                {
+                    var sublocality = ""
+                    var subAdministrativeArea = ""
+                    var postalCode = ""
+                    var country = ""
+                    
+                    if placemark.subLocality != nil{
+                        sublocality = placemark.subLocality!
+                    }
+                    
+                    if placemark.subAdministrativeArea != nil{
+                        subAdministrativeArea = placemark.subAdministrativeArea!
+                    }
+                    if placemark.postalCode != nil{
+                        postalCode = placemark.postalCode!
+                    }
+                    if placemark.country != nil{
+                        country = placemark.country!
+                    }
+                    
+                    self.sublocality.text = sublocality
+                    self.subAdministrativeArea.text = subAdministrativeArea
+                    self.postalCode.text = postalCode
+                    self.country.text = country
+                    print(placemark)
+                }
+            }
+            else {
+                print("Error :: ", error!)
+            }
+        }
     }
     
 
